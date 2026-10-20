@@ -24,7 +24,7 @@ test('Retries preserve the failed execution and its immutable commit',()=>{
 test('All child agents have a previously launched parent and totals match the nodes',()=>{
  for(let sec=0;sec<312;sec++)for(const t of getTasks(sec)){
   const nodes=agentTree(t),ids=new Set(nodes.map(n=>n.id));assert.equal(nodes.length,ids.size);
-  for(const n of nodes){if(n.parent){assert.ok(ids.has(n.parent));assert.ok(nodes.find(p=>p.id===n.parent).start<=n.start);}assert.ok(n.duration>=0);}
+  for(const n of nodes){if(n.parent){assert.ok(ids.has(n.parent));assert.ok(nodes.find(p=>p.id===n.parent).start<=n.start);}assert.ok(n.duration>=0);if(t.local<n.end)assert.equal(n.commit,t.head);}
   const totals=treeTotals(nodes);assert.equal(totals.count,nodes.length);assert.equal(totals.active,nodes.filter(n=>n.state==='Actif').length);
   if(t.terminal)assert.equal(totals.active,0);
  }

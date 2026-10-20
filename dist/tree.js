@@ -7,7 +7,9 @@ export function agentTree(t){
  function add(id,parent,name,model,action,start,end,phase,x,y,icon,tools){
   if(l<start)return;
   const duration=Math.max(0,Math.min(l,end)-start);
-  nodes.push({id,parent,name,model,action,start,end,state:phase,x,y,icon,tools,duration:Math.floor(duration),key:`${t.id}-${t.run}-${id}`,commit:commitAt(t,t.run,start)});
+  // A node reports the last commit it worked on; the developer authors each fix, so it reports the latest one.
+  const seen=id==='dev'?l:Math.min(l,end-1);
+  nodes.push({id,parent,name,model,action,start,end,state:phase,x,y,icon,tools,duration:Math.floor(duration),key:`${t.id}-${t.run}-${id}`,commit:commitAt(t,t.run,seen)});
  }
  add('root',null,'Orchestrateur','Clair · coordination',t.title,0,t.fails?110:90,status,337,25,'network',['Plan','Git']);
  const dev=t.agents[0],review=t.agents[1],security=t.agents[2];
