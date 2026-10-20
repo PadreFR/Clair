@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fc">
+  <meta name="description" content="Clair : observez une équipe d’agents autonomes développer, vérifier et améliorer le code en parallèle. Démonstration interactive en temps réel.">
+  <title>Clair — Supervision autonome</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%234f46e5'/%3E%3Cpath d='m20 7 12 7v13l-12 7-12-7V14z' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="tree.css">
+</head>
+<body>
+  <a class="skip" href="#workspace">Aller au contenu</a>
+  <aside class="sidebar">
+    <a class="brand" href="#" aria-label="Clair, supervision"><span class="brand-mark"><svg viewBox="0 0 32 32" fill="none"><path d="m16 2 12 7v14l-12 7-12-7V9Z" fill="currentColor"/><path d="m16 16 12-7M16 16 4 9m12 7v14" stroke="white" stroke-width="1.6"/><path d="m16 2 12 7-12 7L4 9Z" fill="white" opacity=".25"/></svg></span>clair<span class="brand-dot">.</span></a>
+    <div class="workspace-label">ESPACE DE TRAVAIL</div>
+    <div class="workspace-name"><span class="workspace-avatar">A</span><div>Acme Studio<small>Engineering workspace</small></div><span class="muted">⌄</span></div>
+    <nav id="nav" aria-label="Navigation principale"></nav>
+    <div class="sidebar-bottom"><div class="system-label"><span class="dot green"></span> Système opérationnel</div><div class="autonomous"><span data-icon="shield"></span><div>100 % autonome<small>Aucune validation humaine</small></div></div><div class="sidebar-version">CLAIR ENGINE <span>v0.1 · démo</span></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumb">Espace de travail <span>/</span> <strong id="crumb">Supervision</strong></div><div class="topbar-right"><span class="demo-pill"><span class="dot"></span>Simulation</span><button class="icon-button" id="theme-button" aria-label="Activer le thème sombre" title="Changer de thème">◐</button><button class="icon-button" id="info-button" aria-label="À propos de la simulation" title="À propos de la simulation"><span data-icon="info"></span></button></div></header>
+    <div class="page-heading"><div><div class="eyebrow">LE TRAVAIL AVANCE, EN AUTONOMIE</div><h1 id="page-title">Supervision des agents</h1><p id="page-description">Une vue claire sur chaque tâche, chaque agent et chaque décision.</p></div><div class="live-clock"><span class="live-indicator"><span class="dot green pulse"></span><span id="live-label">En direct</span></span><time id="clock"></time></div></div>
+    <section id="metrics" class="metrics" aria-label="État global"></section>
+    <div class="section-bar"><div class="section-heading"><span class="dot indigo"></span><strong id="section-title">Votre atelier autonome</strong><span class="quiet" id="section-count"></span></div><div class="playback"><span class="quiet">Simulation</span><button id="pause" class="icon-button" title="Suspendre la simulation" aria-label="Suspendre la simulation"><span data-icon="pause"></span></button><button id="speed" class="speed" title="Vitesse de la simulation" aria-label="Changer la vitesse de la simulation">1×</button><button id="reset" class="icon-button" title="Rejouer la simulation" aria-label="Rejouer la simulation"><span data-icon="reset"></span></button></div></div>
+    <div id="workspace" tabindex="-1">
+      <section class="task-panel" aria-label="Liste des tâches"><div class="task-panel-heading"><h2>Tâches</h2><span class="counter">6</span><span class="quiet">Multi-branches</span></div><div class="search"><span data-icon="search"></span><input id="search" type="search" placeholder="Rechercher une tâche…" aria-label="Rechercher une tâche ou une branche"><kbd>/</kbd></div><div class="filters"><button class="filter selected" data-filter="all">Toutes</button><button class="filter" data-filter="active">En cours</button><button class="filter" data-filter="done">Terminées</button></div><div id="task-list"></div><div class="task-note"><span data-icon="branches"></span>Plusieurs agents, une même direction.</div></section>
+      <section id="detail" class="detail" aria-label="Détail de la tâche"></section>
+    </div>
+    <section id="global-view" hidden></section>
+    <footer class="page-footer"><span><span class="dot green"></span> Orchestration simulée · aucune connexion à un dépôt réel</span><span>Conçu pour observer. Pensé pour avancer.</span></footer>
+  </main>
+  <dialog id="drawer"><div class="drawer-top"><span class="eyebrow" id="drawer-eyebrow">DÉTAIL</span><button class="icon-button" id="close-drawer" aria-label="Fermer"><span data-icon="close"></span></button></div><div id="drawer-content"></div></dialog>
+  <div id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
