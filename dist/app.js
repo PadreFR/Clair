@@ -164,7 +164,7 @@ function renderDrawer(){
  }
  patch($('#drawer-content'),body);
 }
-function selectTask(id,tab='live'){state.selected=Number(id);state.tab=tab;state.eventRole='all';if(['agents','decisions','history'].includes(state.nav))state.nav='supervision';render(true);}
+function selectTask(id,tab='live'){if(Number(id)!==state.selected)treeState.collapsed.clear();state.selected=Number(id);state.tab=tab;state.eventRole='all';if(['agents','decisions','history'].includes(state.nav))state.nav='supervision';render(true);}
 document.addEventListener('click',e=>{
  const collapse=e.target.closest('[data-collapse]');
  if(collapse){const id=collapse.dataset.collapse;treeState.collapsed.has(id)?treeState.collapsed.delete(id):treeState.collapsed.add(id);renderDetail();return;}
@@ -172,7 +172,7 @@ document.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.zoom){const width=$('.canvas-scroll').clientWidth-24;treeState.zoom=b.dataset.zoom==='fit'?Math.max(.3,Math.min(1,width/920)):Math.min(1.25,Math.max(.3,treeState.zoom+(b.dataset.zoom==='in'?.1:-.1)));renderDetail();return;}
  if(b.dataset.nav){state.nav=b.dataset.nav;render(true);}
- if(b.dataset.task){treeState.collapsed.clear();selectTask(b.dataset.task);}
+ if(b.dataset.task)selectTask(b.dataset.task);
  if(b.dataset.tab){state.tab=b.dataset.tab;renderDetail();}
  if(b.dataset.filter){state.filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('selected',x===b));renderTaskList();}
  if(b.hasAttribute('data-agent'))showDrawer('agent',Number(b.dataset.taskId),Number(b.dataset.agent));
