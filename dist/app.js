@@ -193,8 +193,10 @@ $('#drawer').addEventListener('close',()=>{state.drawer=null;});
 $('#drawer').addEventListener('click',e=>{if(e.target===$('#drawer')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right)e.target.close();}});
 $('.brand').addEventListener('click',e=>{e.preventDefault();state.nav='supervision';render(true);});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('#drawer').open){e.preventDefault();if($('#workspace').hidden){state.nav='supervision';render(true);}$('#search').focus();}});
-$('#theme-button').addEventListener('click',()=>{const dark=document.body.classList.toggle('dark');$('#theme-button').setAttribute('aria-label',dark?'Activer le thème clair':'Activer le thème sombre');try{localStorage.setItem('clair-theme',dark?'dark':'light');}catch{}});
-try{if(localStorage.getItem('clair-theme')==='dark')document.body.classList.add('dark');}catch{}
+// The saved theme is applied by an inline script in index.html before first paint; this keeps the button label in sync.
+function syncThemeLabel(){$('#theme-button').setAttribute('aria-label',document.body.classList.contains('dark')?'Activer le thème clair':'Activer le thème sombre');}
+$('#theme-button').addEventListener('click',()=>{const dark=document.body.classList.toggle('dark');syncThemeLabel();try{localStorage.setItem('clair-theme',dark?'dark':'light');}catch{}});
+syncThemeLabel();
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-tree-node]')){e.preventDefault();showDrawer('tree',Number(e.target.dataset.taskId),e.target.dataset.treeNode);}});
 renderIcons();render(true);
 setInterval(()=>{const now=performance.now(),delta=(now-lastTick)/1000;lastTick=now;if(!state.paused){state.elapsed+=delta*state.speed;render();}},1000);
