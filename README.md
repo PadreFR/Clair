@@ -55,12 +55,13 @@ dist/
   tree.js        Modèle de l’arbre de délégation
   styles.css     Styles de base
   tree.css       Vue en arbre et thèmes
+  fonts/         Polices DM Sans et Manrope et leurs licences
 tests/
   model.test.js  Vérification des scénarios
   tree.test.js   Vérification de la hiérarchie
 ```
 
-Le dossier `dist/` contient directement les sources servies au navigateur ; il ne provient pas d’une compilation. Google Fonts est optionnel : des polices de repli sont prévues.
+Le dossier `dist/` contient directement les sources servies au navigateur ; il ne provient pas d’une compilation. Les polices DM Sans et Manrope (licence SIL Open Font License 1.1) sont servies depuis `dist/fonts/` : la page n’effectue aucune requête externe.
 
 ## Direction du produit : observation uniquement
 
