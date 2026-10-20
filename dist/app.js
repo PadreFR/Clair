@@ -72,7 +72,7 @@ function renderNav(){
  $('#section-title').textContent=state.nav==='supervision'||state.nav==='tasks'?'Vos tâches':state.nav==='agents'?'Agents de toutes les tâches':state.nav==='decisions'?'Journal des décisions':'Trace d’exécution';
 }
 function renderMetrics(){
- const m=getMetrics(tasks);const allNodes=tasks.flatMap(agentTree);m.active=allNodes.filter(n=>n.state==='Actif').length;m.waiting=allNodes.filter(n=>n.state==='En attente').length;
+ const m=getMetrics(tasks);
  patch($('#metrics'),[['Tâches en cours',m.running,`${tasks.length} branches suivies`,'tasks',''],['Agents actifs',m.active,'travaillent en parallèle','agents','green'],['Dépendances en attente',m.waiting,'reprises automatiquement','branches',''],['Tâches intégrées',m.integrated,m.stopped?`${m.stopped} arrêt documenté`:'contrôles validés','check','green']].map(([label,n,sub,ic,color])=>`<div class="metric"><div class="metric-top"><span>${label}</span><span class="metric-icon">${icon(ic)}</span></div><div class="metric-bottom"><span class="metric-number">${n.toString().padStart(2,'0')}</span><small class="${color}">${sub}</small></div></div>`).join(''));
  $('#section-count').textContent=`${tasks.length} tâches · ${m.active} agents actifs`;
  $('#clock').textContent=timeText(state.elapsed);
