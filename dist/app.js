@@ -79,7 +79,7 @@ function renderMetrics(){
  $('#live-label').parentElement.classList.toggle('amber',state.paused);
 }
 function renderTaskList(){
- const list=tasks.filter(t=>(state.filter==='all'||(state.filter==='active'?!t.terminal:t.terminal))&&`${escape(t.title)} ${escape(t.repo)} ${escape(t.branch)}`.toLowerCase().includes(state.search.toLowerCase()));
+ const list=tasks.filter(t=>(state.filter==='all'||(state.filter==='active'?!t.terminal:t.terminal))&&`${t.title} ${t.repo} ${t.branch}`.toLowerCase().includes(state.search.toLowerCase()));
  patch($('#task-list'),list.map(t=>`<button class="task-card ${t.id===state.selected?'selected':''}" data-key="${t.id}" data-task="${t.id}" aria-pressed="${t.id===state.selected}"><div class="task-card-top"><h3>${escape(t.title)}</h3>${t.id===state.selected?icon('chevron'):''}</div><div class="repo">${escape(t.repo)} <span class="quiet">· #${t.id}</span></div><div class="branch">${icon('branches')}<code>${escape(t.branch)}</code></div><div class="badges">${t.badges.map(b=>badge(...b)).join('')}</div><div class="task-card-footer"><span class="mini-agents"><span class="mini-agent">D</span><span class="mini-agent">S</span><span class="mini-agent">T</span></span>${t.terminal?(t.stage===5?'Intégration terminée':'Diagnostic conservé'):`${t.active} actifs${t.waiting?' · '+t.waiting+' en attente':''}`}</div></button>`).join('')||'<div class="empty">Aucune tâche ne correspond à ce filtre.</div>');
 }
 function treeStatus(n){
