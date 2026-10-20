@@ -1,3 +1,4 @@
+import {commitAt} from './model.js';
 // A deterministic, simulated parent/child execution trace.
 export function agentTree(t){
  const l=t.local;
@@ -6,7 +7,7 @@ export function agentTree(t){
  function add(id,parent,name,model,action,start,end,phase,x,y,icon,tools){
   if(l<start)return;
   const duration=Math.max(0,Math.min(l,end)-start);
-  nodes.push({id,parent,name,model,action,start,end,state:phase,x,y,icon,tools,duration:Math.floor(duration),key:`${t.id}-${t.run}-${id}`,commit:start>=56?`b${t.id}e4${id==='retry3'?3:id==='retry2'?2:1}${t.run%10}`:t.base});
+  nodes.push({id,parent,name,model,action,start,end,state:phase,x,y,icon,tools,duration:Math.floor(duration),key:`${t.id}-${t.run}-${id}`,commit:commitAt(t,t.run,start)});
  }
  add('root',null,'Orchestrateur','Clair · coordination',t.title,0,t.fails?110:90,status,337,25,'network',['Plan','Git']);
  const dev=t.agents[0],review=t.agents[1],security=t.agents[2];

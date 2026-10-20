@@ -25,4 +25,6 @@ test('Counters remain derived, event ordering valid and terminal tasks inactive 
 });
 test('New demonstration cycles use distinct run and commit identifiers',()=>{
  const a=getTasks(0)[0],b=getTasks(cycleLength)[0];assert.equal(b.run,a.run+1);assert.notEqual(a.head,b.head);assert.ok(b.recent.every(e=>e.run===b.run));
+ const commits=new Set();for(let r=0;r<25;r++){const t=getTasks(cycleLength*r+22)[0];commits.add(t.base);commits.add(t.head);}
+ assert.equal(commits.size,50);
 });

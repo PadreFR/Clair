@@ -12,6 +12,9 @@ export const cycleLength = 156;
 export function timeText(seconds){return new Date(Date.UTC(2026,9,17,14,32,0)+seconds*1000).toISOString().slice(11,19);}
 export function stageAt(local,fails){if(local<18)return 0;if(local<34)return 1;if(local<56)return 2;if(local<78)return 3;if(fails)return local<110?6:7;return local<90?4:5;}
 const milestones = [0,18,28,34,45,56,65,78,90,94,110];
+export function attemptAt(spec,local){return spec.fails&&local>=94?3:spec.fails&&local>=78?2:1;}
+// Commit visible at a local time: the initial commit, then one fix commit per attempt. The full run number keeps every run's commits distinct.
+export function commitAt(spec,run,local){return local<56?`a${spec.id}f2c${run}`:`b${spec.id}e4${attemptAt(spec,local)}${run}`;}
 function eventAt(spec,local,run,at){
  const common={taskId:spec.id,run,at,local};
  const events={
@@ -31,8 +34,7 @@ function eventAt(spec,local,run,at){
 }
 export function snapshot(spec,elapsed){
  const total=elapsed+spec.offset,run=Math.floor(total/cycleLength)+1,local=total%cycleLength,stage=stageAt(local,spec.fails),terminal=stage===5||stage===7;
- const base=`a${spec.id}f2c${run%10}`,head=local>=56?`b${spec.id}e4${spec.fails&&local>=94?3:spec.fails&&local>=78?2:1}${run%10}`:base;
- let attempt=1;if(spec.fails&&local>=78)attempt=local>=94?3:2;
+ const base=commitAt(spec,run,0),head=commitAt(spec,run,local),attempt=attemptAt(spec,local);
  const actions=[spec.dev,spec.review,spec.security,`Prépare ${spec.test}`],states=['Actif','En attente','En attente','Actif'];
  let decision='Développer la fonctionnalité et préparer ses tests en parallèle.',reason='Critères chargés · environnement de travail isolé.';
  if(stage===1){actions[0]='Attend les résultats des revues';actions[3]='Exécute le scénario de reproduction';states.splice(0,4,'En attente','Actif','Actif','Actif');decision='Lancer les revues indépendantes et reproduire les cas limites.';reason='Implémentation disponible · contrôles parallèles autorisés.';}
