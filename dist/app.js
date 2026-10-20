@@ -1,5 +1,5 @@
 import {agentTree,visibleTree,treeTotals} from './tree.js';
-import {getTasks,getMetrics,getProofs,ROLES,PHASES,timeText} from './model.js';
+import {getTasks,getMetrics,getProofs,timeText} from './model.js';
 const paths={
  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
  tasks:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
@@ -52,12 +52,11 @@ function morphChildren(from,to){
  }
  while(cur){const n=cur.nextSibling;from.removeChild(cur);cur=n;}
 }
-const state={elapsed:0,selected:142,tab:'live',nav:'supervision',filter:'all',search:'',paused:false,speed:1,eventRole:'all',drawer:null};
+const state={elapsed:0,selected:142,tab:'live',nav:'supervision',filter:'all',search:'',paused:false,speed:1,drawer:null};
 let tasks=getTasks(0),lastTick=performance.now();
 const treeState={collapsed:new Set(),seen:new Set(),zoom:1};
 const duration=n=>n<60?`${n} s`:`${Math.floor(n/60)} min ${n%60} s`;
 
-const roleIcons=['code','search','shield','test'],roleClasses=['dev','','security','test'];
 const navItems=[['supervision','grid','Supervision'],['tasks','tasks','Tâches'],['agents','agents','Agents'],['decisions','network','Décisions'],['history','clock','Historique']];
 const statusColor=s=>s==='Actif'?'indigo':s==='Terminé'?'green':s==='En attente'?'amber':'red';
 const badge=(label,tone)=>`<span class="badge ${tone}">${escape(label)}</span>`;
@@ -83,8 +82,6 @@ function renderTaskList(){
  const list=tasks.filter(t=>(state.filter==='all'||(state.filter==='active'?!t.terminal:t.terminal))&&`${escape(t.title)} ${escape(t.repo)} ${escape(t.branch)}`.toLowerCase().includes(state.search.toLowerCase()));
  patch($('#task-list'),list.map(t=>`<button class="task-card ${t.id===state.selected?'selected':''}" data-key="${t.id}" data-task="${t.id}" aria-pressed="${t.id===state.selected}"><div class="task-card-top"><h3>${escape(t.title)}</h3>${t.id===state.selected?icon('chevron'):''}</div><div class="repo">${escape(t.repo)} <span class="quiet">· #${t.id}</span></div><div class="branch">${icon('branches')}<code>${escape(t.branch)}</code></div><div class="badges">${t.badges.map(b=>badge(...b)).join('')}</div><div class="task-card-footer"><span class="mini-agents"><span class="mini-agent">D</span><span class="mini-agent">S</span><span class="mini-agent">T</span></span>${t.terminal?(t.stage===5?'Intégration terminée':'Diagnostic conservé'):`${t.active} actifs${t.waiting?' · '+t.waiting+' en attente':''}`}</div></button>`).join('')||'<div class="empty">Aucune tâche ne correspond à ce filtre.</div>');
 }
-function agentRow(t,a){return `<button class="agent-row" data-agent="${a.index}" data-task-id="${t.id}" aria-label="Voir l’activité de ${escape(a.name)} pour ${escape(t.title)}"><span class="agent-name"><span class="agent-icon ${roleClasses[a.index]}">${icon(roleIcons[a.index])}</span>${escape(a.name)}</span><span class="agent-action">${escape(a.action)}<small>${a.dependency?`${icon('branches')}Dépend de : ${escape(a.dependency)}`:a.state==='Actif'?`${escape(t.file)} · ${escape(t.head)}`:`Exécution #${t.run} · ${escape(t.head)}`}</small></span><span class="agent-status ${statusColor(a.state)}"><span class="dot"></span>${escape(a.state)}</span><span class="agent-signal">${a.signal?a.signal+' s':'—'} ${icon('chevron')}</span></button>`;}
-function eventsMarkup(events,limit=5){return events.slice(-limit).map((e,i,arr)=>`<div class="event ${i===arr.length-1?'event-latest':''}"><time class="event-time">${timeText(e.at)}</time><span class="event-dot"></span><div><span class="event-role">${escape(e.role)}</span><p>${escape(e.message)}</p></div></div>`).join('')||'<div class="empty">Aucun événement pour cet agent dans cette exécution.</div>';}
 function treeStatus(n){
  const cls=n.state==='Actif'?'active':n.state==='Terminé'?'done':n.state==='Échec'?'failed':n.state==='En attente'?'waiting':'';
  const mark=n.state==='Actif'?'<span class="tiny-spinner"></span>':icon(n.state==='Terminé'?'check':n.state==='Échec'?'alert':'pause');
@@ -140,7 +137,7 @@ function render(all=false){
  tasks=getTasks(state.elapsed);renderMetrics();
  const isGlobal=['agents','decisions','history'].includes(state.nav);$('#workspace').hidden=isGlobal;$('#global-view').hidden=!isGlobal;
  if(all)renderNav();
- if(isGlobal)renderGlobal();else{renderTaskList();if(document.activeElement?.id!=='event-filter')renderDetail();}
+ if(isGlobal)renderGlobal();else{renderTaskList();renderDetail();}
  if(state.drawer&&$('#drawer').open)renderDrawer();
 }
 function showDrawer(type,id,extra){state.drawer={type,id,extra};renderDrawer();if(!$('#drawer').open)$('#drawer').showModal();}
@@ -154,10 +151,6 @@ function renderDrawer(){
    const parent=agentTree(t).find(p=>p.id===n.parent),children=agentTree(t).filter(p=>p.parent===n.id);
    body=`<h2 class="drawer-title">${escape(n.name)}</h2><p class="drawer-subtitle">${escape(t.title)} · ${escape(n.model)}</p>${treeStatus(n)}<div class="drawer-section"><h3>Mission actuelle</h3><p>${escape(n.action)}</p></div><div class="drawer-stat"><span>Lancé par</span><strong>${escape(parent?.name||'Moteur autonome')}</strong></div><div class="drawer-stat"><span>Branche</span><code>${escape(t.branch)}</code></div><div class="drawer-stat"><span>Commit observé</span><code>${escape(n.commit)}</code></div><div class="drawer-stat"><span>Durée simulée</span><strong>${duration(n.duration)}</strong></div><div class="drawer-section"><h3>Agents délégués · ${children.length}</h3>${children.length?children.map(c=>`<div class="drawer-stat"><span>${escape(c.name)}</span>${treeStatus(c)}</div>`).join(''):'<p>Aucune délégation.</p>'}</div><div class="drawer-section"><h3>Trace d’exécution simulée</h3><pre class="terminal">${escape(`[${timeText(state.elapsed-t.local+n.start)}] Agent lancé par ${parent?.name||'le moteur'}\nMission : ${n.action}\nOutils : ${n.tools.join(', ')}\nCommit : ${n.commit}\nÉtat : ${n.state}`)}</pre></div>${n.state==='Échec'?'<div class="tree-note">L’échec est conservé dans l’arbre. L’orchestrateur décide automatiquement de la reprise ou de l’arrêt, dans la limite de trois tentatives.</div>':''}<button class="outline-button" style="margin-top:20px" data-drawer-tab="proofs">Consulter les preuves ${icon('arrow')}</button>`;
   }
- }else if(d.type==='agent'){
-  const a=t.agents[d.extra];$('#drawer-eyebrow').textContent='AGENT · ACTIVITÉ EN DIRECT';
-  const events=t.recent.filter(e=>e.role===a.name||e.role==='Orchestrateur');
-  body=`<div class="agent-icon ${roleClasses[a.index]}" style="margin-bottom:16px;width:44px;height:44px">${icon(roleIcons[a.index])}</div><h2 class="drawer-title">${escape(a.name)}</h2><p class="drawer-subtitle">${escape(t.title)} · exécution #${t.run}</p><div class="drawer-stat"><span>État</span><span class="agent-status ${statusColor(a.state)}"><span class="dot"></span>${escape(a.state)}</span></div><div class="drawer-stat"><span>Branche</span><code>${escape(t.branch)}</code></div><div class="drawer-stat"><span>Commit observé</span><code>${escape(t.head)}</code></div><div class="drawer-stat"><span>Dépendance</span><span>${escape(a.dependency||'Aucune')}</span></div><div class="drawer-section"><h3>Action actuelle</h3><p>${escape(a.action)}</p></div><div class="drawer-section"><h3>Sortie d’activité simulée</h3><pre class="terminal">${escape(`[${timeText(state.elapsed)}] ${a.state.toUpperCase()}\n${a.action}\n\nFichier : src/${t.file}\nEspace : agent-${t.id}-${a.index}\n${a.dependency?'Attend : '+a.dependency:'Commit : '+t.head}`)}</pre></div><div class="drawer-section"><h3>Événements associés</h3><div class="events">${eventsMarkup(events,6)}</div></div>`;
  }else if(d.type==='decision'){
   $('#drawer-eyebrow').textContent='ORCHESTRATEUR · DÉCISION AUTOMATIQUE';body=`<h2 class="drawer-title">${escape(t.decision)}</h2><p class="drawer-subtitle">Tâche #${t.id} · ${timeText(t.decisionAt)}</p><div class="drawer-section"><h3>Déclencheur observé</h3><p>${escape(t.reason)}</p></div><div class="drawer-section"><h3>Règles appliquées</h3><div class="drawer-stat"><span>Maximum de tentatives</span><strong>3</strong></div><div class="drawer-stat"><span>Essai actuel</span><strong>${t.attempt}</strong></div><div class="drawer-stat"><span>Validation humaine</span><strong>Aucune</strong></div><div class="drawer-stat"><span>Condition d’intégration</span><strong>Tous les contrôles requis</strong></div></div><div class="drawer-section"><h3>Coordination des agents</h3>${t.agents.map(a=>`<div class="drawer-stat"><span>${escape(a.name)}</span><span class="${statusColor(a.state)}">${escape(a.state)}</span></div>`).join('')}</div><button class="outline-button" data-drawer-tab="decisions">Historique des décisions ${icon('arrow')}</button>`;
  }else if(d.type==='proof'){
@@ -172,7 +165,7 @@ function renderDrawer(){
  }
  patch($('#drawer-content'),body);
 }
-function selectTask(id,tab='live'){if(Number(id)!==state.selected)treeState.collapsed.clear();state.selected=Number(id);state.tab=tab;state.eventRole='all';if(['agents','decisions','history'].includes(state.nav))state.nav='supervision';render(true);}
+function selectTask(id,tab='live'){if(Number(id)!==state.selected)treeState.collapsed.clear();state.selected=Number(id);state.tab=tab;if(['agents','decisions','history'].includes(state.nav))state.nav='supervision';render(true);}
 document.addEventListener('click',e=>{
  const collapse=e.target.closest('[data-collapse]');
  if(collapse){const id=collapse.dataset.collapse;treeState.collapsed.has(id)?treeState.collapsed.delete(id):treeState.collapsed.add(id);renderDetail();return;}
@@ -183,7 +176,6 @@ document.addEventListener('click',e=>{
  if(b.dataset.task)selectTask(b.dataset.task);
  if(b.dataset.tab){state.tab=b.dataset.tab;renderDetail();}
  if(b.dataset.filter){state.filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('selected',x===b));renderTaskList();}
- if(b.hasAttribute('data-agent'))showDrawer('agent',Number(b.dataset.taskId),Number(b.dataset.agent));
  if(b.dataset.decision)showDrawer('decision',Number(b.dataset.decision));
  if(b.hasAttribute('data-proof'))showDrawer('proof',Number(b.dataset.taskId),Number(b.dataset.proof));
  if(b.dataset.diff)showDrawer('diff',Number(b.dataset.diff));
@@ -191,7 +183,6 @@ document.addEventListener('click',e=>{
  if(b.dataset.drawerTab){const taskId=state.drawer.id;$('#drawer').close();state.drawer=null;selectTask(taskId,b.dataset.drawerTab);}
 });
 $('#search').addEventListener('input',e=>{state.search=e.target.value;renderTaskList();});
-document.addEventListener('change',e=>{if(e.target.id==='event-filter'){state.eventRole=e.target.value;renderDetail();$('#event-filter').focus();}});
 $('#pause').addEventListener('click',()=>{state.paused=!state.paused;document.body.classList.toggle('playback-paused',state.paused);lastTick=performance.now();$('#pause').innerHTML=icon(state.paused?'play':'pause');$('#pause').setAttribute('aria-label',state.paused?'Reprendre la simulation':'Suspendre la simulation');$('#pause').title=state.paused?'Reprendre la simulation':'Suspendre la simulation';renderMetrics();toast(state.paused?'Simulation suspendue':'Simulation reprise');});
 $('#speed').addEventListener('click',()=>{state.speed=state.speed===1?2:state.speed===2?4:1;$('#speed').textContent=state.speed+'×';toast(`Vitesse de simulation : ${state.speed}×`);});
 $('#reset').addEventListener('click',()=>{state.elapsed=0;treeState.seen.clear();treeState.collapsed.clear();lastTick=performance.now();render();toast('Les six scénarios ont été réinitialisés');});

@@ -1,5 +1,4 @@
 export const ROLES = ['Développeur', 'Reviewer', 'Sécurité', 'Testeur'];
-export const PHASES = ['Développement', 'Revues parallèles', 'Correction', 'Vérification', 'Intégration', 'Intégrée', 'Diagnostic', 'Arrêtée'];
 const SPECS = [
   {id:142,title:'Ajouter les abonnements',repo:'billing-api',branch:'feat/subscriptions',file:'subscriptions.ts',offset:35,problem:'Deux abonnements créés pour un même client.',test:'concurrent_subscription',action:'Corrige la création d’abonnement',dev:'Implémente le cycle des abonnements',review:'Examine la gestion des erreurs',security:'Vérifie les autorisations',fix:'Sérialiser les créations par client',proof:'Deux appels simultanés → un seul abonnement actif.'},
   {id:143,title:'Corriger les sessions expirées',repo:'auth-service',branch:'fix/session-expiry',file:'sessions.ts',offset:65,problem:'Une session expirée reste accessible.',test:'expired_session',action:'Corrige la révocation des sessions',dev:'Implémente la révocation des sessions',review:'Vérifie les délais d’expiration',security:'Teste les accès après révocation',fix:'Contrôler l’expiration à chaque accès',proof:'Une session expirée retourne une réponse 401.'},
@@ -43,14 +42,14 @@ export function snapshot(spec,elapsed){
  if(stage===4||stage===5){actions.splice(0,4,'Correctif livré','Revue de code validée','Revue de sécurité validée','Tous les tests réussis');states.fill('Terminé');decision=stage===4?'Intégrer automatiquement le commit validé.':'Intégration terminée. Tous les contrôles sont archivés.';reason='Tests, revue de code et sécurité validés sur le même commit.';}
  if(stage===6){actions.splice(0,4,'Adapte la conversion historique','Analyse le schéma historique','Contrôle les données sensibles','Vérifie la nouvelle conversion');states.splice(0,4,'Actif','Actif','Terminé','Actif');decision=`Relancer la conversion avec une autre stratégie · tentative ${attempt}/3.`;reason='Le test de migration reste en échec. Intégration bloquée.';}
  if(stage===7){actions.splice(0,4,'Adaptation sans résultat concluant','Diagnostic archivé','Contrôle terminé','Conversion en échec');states.splice(0,4,'Arrêté','Terminé','Terminé','Échec');decision='Arrêter la tâche et conserver le diagnostic.';reason='Budget de 3 tentatives épuisé. Aucune intégration effectuée.';}
- const agents=ROLES.map((name,i)=>({name,index:i,action:actions[i],state:states[i],signal:states[i]==='Actif'?Math.floor((elapsed+i*2)%6)+1:null,dependency:states[i]==='En attente'?(stage===2?'Développeur':stage===1?'Revues et tests':'Développeur'):null}));
+ const agents=ROLES.map((name,i)=>({name,index:i,action:actions[i],state:states[i],dependency:states[i]==='En attente'?(stage===2?'Développeur':stage===1?'Revues et tests':'Développeur'):null}));
  const events=[];
  for(let r=Math.max(1,run-1);r<=run;r++)for(const m of milestones){const at=(r-1)*cycleLength+m-spec.offset;if(at<=elapsed){const ev=eventAt(spec,m,r,at);if(ev)events.push(ev);}}
  // The current decision was taken when its stage began: that milestone's event carries the same time.
  const decisionAt=Math.round(elapsed-local)+[0,18,34,56,78,90,attempt===3?94:78,110][stage];
  const recent=events.filter(e=>e.run===run);const decisions=events.filter(e=>e.kind==='decision'||e.kind==='success'||e.kind==='stopped');
  const badges=stage===0?[['Développement','indigo']]:stage===1?[['Revue','purple'],['Sécurité','green']]:stage===2?[['Correction','indigo'],['Revue','purple'],['Sécurité','green']]:stage===3?[['Tests','indigo'],['Revalidation','purple']]:stage===4?[['Intégration','green']]:stage===5?[['Intégrée','green']]:stage===6?[['Reprise automatique','amber']]:[['Arrêtée','red']];
- return {...spec,elapsed,local,run,stage,terminal,base,head,attempt,agents,decision,reason,events,recent,decisions,badges,active:agents.filter(a=>a.state==='Actif').length,waiting:agents.filter(a=>a.state==='En attente').length,decisionAt,budget:Math.max(0,110-local)};
+ return {...spec,elapsed,local,run,stage,terminal,base,head,attempt,agents,decision,reason,events,recent,decisions,badges,active:agents.filter(a=>a.state==='Actif').length,waiting:agents.filter(a=>a.state==='En attente').length,decisionAt};
 }
 export function getTasks(elapsed){return SPECS.map(s=>snapshot(s,elapsed));}
 export function getMetrics(tasks){return {running:tasks.filter(t=>!t.terminal).length,active:tasks.reduce((s,t)=>s+t.active,0),waiting:tasks.reduce((s,t)=>s+t.waiting,0),integrated:tasks.filter(t=>t.stage===5).length,stopped:tasks.filter(t=>t.stage===7).length};}
