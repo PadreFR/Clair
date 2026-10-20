@@ -20,7 +20,7 @@ test('Counters remain derived, event ordering valid and terminal tasks inactive 
   const tasks=getTasks(time),m=getMetrics(tasks);
   assert.equal(m.running+m.integrated+m.stopped,6);
   assert.equal(m.active,tasks.flatMap(t=>t.agents).filter(a=>a.state==='Actif').length);
-  for(const t of tasks){assert.ok(t.events.every(e=>e.at<=time));assert.ok(t.events.every((e,i,a)=>i===0||e.at>=a[i-1].at));if(t.terminal)assert.equal(t.active+t.waiting,0);}
+  for(const t of tasks){assert.ok(t.events.every(e=>e.at<=time));assert.ok(t.recent.some(e=>e.at===t.decisionAt));assert.ok(t.events.every((e,i,a)=>i===0||e.at>=a[i-1].at));if(t.terminal)assert.equal(t.active+t.waiting,0);}
  }
 });
 test('New demonstration cycles use distinct run and commit identifiers',()=>{

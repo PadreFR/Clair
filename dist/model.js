@@ -46,9 +46,11 @@ export function snapshot(spec,elapsed){
  const agents=ROLES.map((name,i)=>({name,index:i,action:actions[i],state:states[i],signal:states[i]==='Actif'?Math.floor((elapsed+i*2)%6)+1:null,dependency:states[i]==='En attente'?(stage===2?'Développeur':stage===1?'Revues et tests':'Développeur'):null}));
  const events=[];
  for(let r=Math.max(1,run-1);r<=run;r++)for(const m of milestones){const at=(r-1)*cycleLength+m-spec.offset;if(at<=elapsed){const ev=eventAt(spec,m,r,at);if(ev)events.push(ev);}}
+ // The current decision was taken when its stage began: that milestone's event carries the same time.
+ const decisionAt=Math.round(elapsed-local)+[0,18,34,56,78,90,attempt===3?94:78,110][stage];
  const recent=events.filter(e=>e.run===run);const decisions=events.filter(e=>e.kind==='decision'||e.kind==='success'||e.kind==='stopped');
  const badges=stage===0?[['Développement','indigo']]:stage===1?[['Revue','purple'],['Sécurité','green']]:stage===2?[['Correction','indigo'],['Revue','purple'],['Sécurité','green']]:stage===3?[['Tests','indigo'],['Revalidation','purple']]:stage===4?[['Intégration','green']]:stage===5?[['Intégrée','green']]:stage===6?[['Reprise automatique','amber']]:[['Arrêtée','red']];
- return {...spec,elapsed,local,run,stage,terminal,base,head,attempt,agents,decision,reason,events,recent,decisions,badges,active:agents.filter(a=>a.state==='Actif').length,waiting:agents.filter(a=>a.state==='En attente').length,lastDecision:decisions.at(-1),budget:Math.max(0,110-local)};
+ return {...spec,elapsed,local,run,stage,terminal,base,head,attempt,agents,decision,reason,events,recent,decisions,badges,active:agents.filter(a=>a.state==='Actif').length,waiting:agents.filter(a=>a.state==='En attente').length,decisionAt,budget:Math.max(0,110-local)};
 }
 export function getTasks(elapsed){return SPECS.map(s=>snapshot(s,elapsed));}
 export function getMetrics(tasks){return {running:tasks.filter(t=>!t.terminal).length,active:tasks.reduce((s,t)=>s+t.active,0),waiting:tasks.reduce((s,t)=>s+t.waiting,0),integrated:tasks.filter(t=>t.stage===5).length,stopped:tasks.filter(t=>t.stage===7).length};}
