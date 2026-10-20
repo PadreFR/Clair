@@ -27,5 +27,6 @@ test('All child agents have a previously launched parent and totals match the no
   for(const n of nodes){if(n.parent){assert.ok(ids.has(n.parent));assert.ok(nodes.find(p=>p.id===n.parent).start<=n.start);}assert.ok(n.duration>=0);if(t.local<n.end)assert.equal(n.commit,t.head);}
   const totals=treeTotals(nodes);assert.equal(totals.count,nodes.length);assert.equal(totals.active,nodes.filter(n=>n.state==='Actif').length);
   if(t.terminal)assert.equal(totals.active,0);
+  if(t.stage===3)assert.equal(t.agents[3].state,nodes.find(n=>n.id==='retry').state);
  }
 });
