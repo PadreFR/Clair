@@ -20,9 +20,11 @@ test('Counters remain derived, event ordering valid and terminal tasks inactive 
   const tasks=getTasks(time),m=getMetrics(tasks);
   assert.equal(m.running+m.integrated+m.stopped,6);
   assert.equal(m.active,tasks.flatMap(t=>t.agents).filter(a=>a.state==='Actif').length);
-  for(const t of tasks){assert.ok(t.events.every(e=>e.at<=time));assert.ok(t.events.every((e,i,a)=>i===0||e.at>=a[i-1].at));if(t.terminal)assert.equal(t.active+t.waiting,0);}
+  for(const t of tasks){assert.ok(t.events.every(e=>e.at<=time));assert.ok(t.recent.some(e=>e.at===t.decisionAt));assert.ok(t.events.every((e,i,a)=>i===0||e.at>=a[i-1].at));if(t.terminal)assert.equal(t.active+t.waiting,0);}
  }
 });
 test('New demonstration cycles use distinct run and commit identifiers',()=>{
  const a=getTasks(0)[0],b=getTasks(cycleLength)[0];assert.equal(b.run,a.run+1);assert.notEqual(a.head,b.head);assert.ok(b.recent.every(e=>e.run===b.run));
+ const commits=new Set();for(let r=0;r<25;r++){const t=getTasks(cycleLength*r+22)[0];commits.add(t.base);commits.add(t.head);}
+ assert.equal(commits.size,50);
 });
